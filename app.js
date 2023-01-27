@@ -1,14 +1,44 @@
 const express = require('express')
-require ('dotenv').config
+const mongoose =require('mongoose')
+const path =require('path')
+require('dotenv').config()
+
 const app = express()
-app.get('/',(req,res)=>
+
+mongoose
+.connect(
+`mongodb+srv://edgarteran:${process.env.MONGO_DB_PASS}@develoment.yimkukm.mongodb.net/crudnextjs?retryWrites=true&w=majority`)
+.then((result) => console.log('conexion exitosa a la base de datos')).catch((err) => console.log(err))
+
+const productSchema = mongoose.Schema(
 {
-   console.log('peticion recibida') 
-    res.status(200).send('hola mundo')
+name: {type: String,required : true},
+price:Number,
+    
+},
+{timestamps: true}
+)
+
+const Product = mongoose.model('Product',productSchema)
+
+app.use(express.json())
+
+
+app.post('/api/v1/products',(req, res) => {
+    
+const newProduct = new Product(req.body)
+newProduct.save() 
+.then ((result)=>{
+res.status(201).json({ok: true})    
+})
+.catch((err)=> console.log(err))  
 })
 
-const PORT = process.env.PORT 
 
-app.listen(PORT,()=> {
-    console.log('servidor escuchando en el puerto ${PORT}')
-} )
+app.use(express.static(path.join(__dirname, 'public')))
+
+const PORT = process.env.PORT
+
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en el puerto ${PORT}`)
+})
